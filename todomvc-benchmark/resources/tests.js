@@ -224,6 +224,43 @@ Suites.push({
 });
 
 Suites.push({
+    name: 'Plastiq',
+    url: 'todomvc/plastiq/index.html',
+    version: '1.24.0',
+    prepare: function (runner, contentWindow, contentDocument) {
+        return runner.waitForElement('.new-todo').then(function (element) {
+            element.focus();
+            return element;
+        });
+    },
+    tests: [
+        new BenchmarkTestStep('Adding' + numberOfItemsToAdd + 'Items', function (newTodo, contentWindow, contentDocument) {
+            var submitEvent = document.createEvent('Event');
+            submitEvent.initEvent('submit', true, true);
+            for (var i = 0; i < numberOfItemsToAdd; i++) {
+                var inputEvent = document.createEvent('Event');
+                inputEvent.initEvent('input', true, true);
+                newTodo.value = 'Plastiq ------- Something to do ' + i;
+                newTodo.dispatchEvent(inputEvent);
+                newTodo.form.dispatchEvent(submitEvent);
+            }
+        }),
+        new BenchmarkTestStep('CompletingAllItems', function (newTodo, contentWindow, contentDocument) {
+            var checkboxes = contentDocument.querySelectorAll('.toggle');
+            console.log('checkboxes.length', checkboxes.length);
+            for (var i = 0; i < checkboxes.length; i++)
+                checkboxes[i].click();
+        }),
+        new BenchmarkTestStep('DeletingAllItems', function (newTodo, contentWindow, contentDocument) {
+            var deleteButtons = contentDocument.querySelectorAll('.destroy');
+            console.log('deleteButtons.length', deleteButtons.length);
+            for (var i = deleteButtons.length - 1; i > -1; i--)
+                deleteButtons[i].click();
+        })
+    ]
+});
+
+Suites.push({
     name: 'React',
     url: 'todomvc/react/index.html',
     version: '0.10.0',
