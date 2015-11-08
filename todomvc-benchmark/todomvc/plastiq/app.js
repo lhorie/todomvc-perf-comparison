@@ -69,8 +69,7 @@ function createApp() {
       }
 
       return eitherRoute(function (params) {
-        var filterName = params.filter || 'all';
-        var filter = self.filters[filterName];
+        var filter = self.filters[params.filter];
 
         return h('div',
           h('section.todoapp',
@@ -166,4 +165,4 @@ function createApp() {
   };
 }
 
-plastiq.append(document.body, createApp());
+plastiq.append(document.body, createApp(), undefined, {requestRender: setTimeout});
