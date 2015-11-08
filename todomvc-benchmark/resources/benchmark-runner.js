@@ -111,30 +111,49 @@ BenchmarkRunner.prototype._runTest = function(suite, test, prepareReturnValue, c
     var syncTime = endTime - startTime;
 
     var startTime = now();
-    setTimeout(function () {
-        setTimeout(function () {
-            var endTime = now();
-			
-			//if the DOM count is wrong after a test, don't report its results
-			//numberOfItemsToAdd is a global from test.js
-			if (test.name.indexOf("Adding") > -1 || test.name.indexOf("Completing") > -1) {
-				var count = contentDocument.querySelectorAll(".view").length
-				if (count != numberOfItemsToAdd) {
-					console.error([suite.name, test.name, "expected", numberOfItemsToAdd, "got", count])
-					syncTime = startTime = endTime = NaN
-				}
-			}
-			if (test.name.indexOf("Deleting") > -1) {
-				var count = contentDocument.querySelectorAll(".view").length
-				if (count != 0) {
-					console.error([suite.name, test.name, "expected", 0, "got", count])
-					syncTime = startTime = endTime = NaN
-				}
-			}
-			
-            callback(syncTime, endTime - startTime);
-        }, 0)
-    }, 0);
+    retry(function () {
+        endTime = now();
+        
+        //if the DOM count is wrong after a test, don't report its results
+        //numberOfItemsToAdd is a global from test.js
+        if (test.name.indexOf("Adding") > -1 || test.name.indexOf("Completing") > -1) {
+            var count = contentDocument.querySelectorAll(".view").length
+            if (count != numberOfItemsToAdd) {
+                throw new Error([suite.name, test.name, "expected", numberOfItemsToAdd, "got", count])
+                syncTime = startTime = endTime = NaN
+            }
+        }
+        if (test.name.indexOf("Deleting") > -1) {
+            var count = contentDocument.querySelectorAll(".view").length
+            if (count != 0) {
+                throw new Error([suite.name, test.name, "expected", 0, "got", count])
+                syncTime = startTime = endTime = NaN
+            }
+        }
+    }, function () {
+        callback(syncTime, endTime - startTime);
+    });
+}
+
+function retry(fn, cb) {
+    var startTime = Date.now();
+
+    function retryInternal() {
+        try {
+            fn();
+            cb();
+        } catch(e) {
+            if (Date.now() - startTime > 2000) {
+                cb(e);
+            } else {
+                setTimeout(function () {
+                    retryInternal();
+                });
+            }
+        }
+    }
+
+    retryInternal();
 }
 
 function BenchmarkState(suites) {
