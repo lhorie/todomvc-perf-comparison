@@ -226,7 +226,7 @@ Suites.push({
 Suites.push({
     name: 'Plastiq',
     url: 'todomvc/plastiq/index.html',
-    version: '1.24.0',
+    version: '1.24.0 + virtual-dom 2.1.1',
     prepare: function (runner, contentWindow, contentDocument) {
         return runner.waitForElement('.new-todo').then(function (element) {
             element.focus();
